@@ -72,7 +72,10 @@
                         <th>הנחה</th>
                         <th>חיסכון חודשי</th>
                         <th>חיסכון בחשבון</th>
-                        <th>חיסכון חודשי (₪)</th>
+                        <th>
+                            <span class="d-md-inline">חיסכון חודשי (₪)</span>
+                            <span class="d-md-none">חיסכון</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -123,6 +126,7 @@
                         </td>
                         <td>
                             <strong class="nis-savings">₪{{ plan.monthly_savings_nis }}</strong>
+                            <span class="mobile-percentage d-md-none"><br>({{ plan.bill_savings_percentage }}%)</span>
                         </td>
                     </tr>
                     {% endfor %}

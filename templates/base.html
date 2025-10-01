@@ -817,15 +817,27 @@
             
             /* Hide less important columns on very small screens */
             @media (max-width: 480px) {
+                /* Hide: לוח זמנים (4th), הנחה (5th), חיסכון חודשי kWh (6th), חיסכון בחשבון % (7th) */
                 .table th:nth-child(4),
                 .table td:nth-child(4),
+                .table th:nth-child(5),
+                .table td:nth-child(5),
                 .table th:nth-child(6),
-                .table td:nth-child(6) {
+                .table td:nth-child(6),
+                .table th:nth-child(7),
+                .table td:nth-child(7) {
                     display: none;
                 }
                 
                 .table {
-                    min-width: 600px;
+                    min-width: 400px;
+                }
+                
+                /* Style mobile percentage display */
+                .mobile-percentage {
+                    font-size: 0.8rem;
+                    color: rgba(31, 41, 55, 0.8);
+                    font-weight: normal;
                 }
             }
             
