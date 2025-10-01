@@ -74,8 +74,9 @@
                         <th>חיסכון בחשבון</th>
                         <th>
                             <span class="d-md-inline">חיסכון חודשי (₪)</span>
-                            <span class="d-md-none">חיסכון</span>
+                            <span class="d-md-none">חיסכון חודשי</span>
                         </th>
+                        <th class="d-md-none">לוח זמנים</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -127,6 +128,12 @@
                         <td>
                             <strong class="nis-savings">₪{{ plan.monthly_savings_nis }}</strong>
                             <span class="mobile-percentage d-md-none"><br>({{ plan.bill_savings_percentage }}%)</span>
+                        </td>
+                        <td class="d-md-none mobile-schedule">
+                            <div class="small">
+                                <div>{{ plan.applicable_days }}</div>
+                                <div>{{ plan.applicable_hours }}</div>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

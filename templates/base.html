@@ -830,7 +830,21 @@
                 }
                 
                 .table {
-                    min-width: 400px;
+                    min-width: 500px;
+                }
+                
+                /* Make text columns narrower on mobile */
+                .table th:nth-child(2),
+                .table td:nth-child(2) {
+                    width: 80px;
+                    min-width: 80px;
+                }
+                
+                .table th:nth-child(3),
+                .table td:nth-child(3) {
+                    width: 120px;
+                    min-width: 120px;
+                    font-size: 0.8rem;
                 }
                 
                 /* Style mobile percentage display */
@@ -838,6 +852,19 @@
                     font-size: 0.8rem;
                     color: rgba(31, 41, 55, 0.8);
                     font-weight: normal;
+                }
+                
+                /* Style mobile schedule column */
+                .mobile-schedule {
+                    width: 100px;
+                    min-width: 100px;
+                    font-size: 0.75rem;
+                    line-height: 1.2;
+                    padding: 0.3rem !important;
+                }
+                
+                .mobile-schedule div {
+                    margin-bottom: 0.1rem;
                 }
             }
             
