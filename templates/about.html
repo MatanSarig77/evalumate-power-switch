@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}אודות - Evalumate{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-background-image"></div>
+    <div class="side-lightning-far-left">⚡</div>
+    <div class="side-lightning-far-right">⚡</div>
+    <div class="side-lightning-mid-left">⚡</div>
+    <div class="side-lightning-mid-right">⚡</div>
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                איך זה עובד
+                <span class="lightning-character"></span>
+            </h1>
+            <p class="hero-subtitle">
+                ניתוח חכם של נתוני הצריכה החשמלית שלך
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="feature-card mb-4">
+                    <h4 class="mb-3">תהליך פשוט</h4>
+                    <p class="mb-3">העלה את קובץ ה-CSV של מונה החשמל הישראלי שלך. אנחנו מנתחים את דפוסי הצריכה שלך וממליצים על התוכניות הטובות ביותר לחסוך כסף.</p>
+                    
+                    <h5 class="mb-3">תוכניות נתמכות</h5>
+                    <ul class="mb-0">
+                        <li><strong>סלקום אנרג׳י</strong> - תוכניות חיסכון יום, משפחה ולילה</li>
+                        <li><strong>אלקטרה פאוור</strong> - תוכניות לילה, POWER והייטק</li>
+                        <li><strong>בזק אנרג׳י</strong> - תוכניות חוסכים חכם</li>
+                    </ul>
+                </div>
+                
+                <div class="text-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary-custom btn-lg">
+                        <i class="fas fa-arrow-right me-2"></i>
+                        חזור להעלאה
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

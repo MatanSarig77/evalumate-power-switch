@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="side-lightning-far-left">⚡</div>
+    <div class="side-lightning-far-right">⚡</div>
+    <div class="side-lightning-mid-left">⚡</div>
+    <div class="side-lightning-mid-right">⚡</div>
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <img src="{{ url_for('static', filename='images/logos/Sparky_cropped.png') }}" alt="Sparky" style="height: 3em; margin-left: 0.1rem; vertical-align: middle;">
+                Evalumate
+                <span class="lightning-character"></span>
+            </h1>
+            <p class="hero-subtitle">
+                העלה את נתוני המונה שלך, קבל את התוכנית החשמל הטובה ביותר - בחינם!
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                    <div class="upload-area" id="upload-area">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h4>גרור את קובץ ה-CSV שלך לכאן</h4>
+                        <p class="text-muted mb-3">או לחץ לעיון</p>
+                        <input type="file" name="consumption_file" id="consumption_file" accept=".csv" style="display: none;" required>
+                        <p class="small text-muted mb-3" id="file-name">לא נבחר קובץ</p>
+                        <button type="submit" class="btn btn-primary-custom btn-lg" id="upload-btn" disabled>
+                            <i class="fas fa-upload me-2"></i>
+                            נתח וחסוך
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Guide Button - Outside upload area to avoid conflicts -->
+                <div class="text-center mt-2">
+                    <button type="button" class="btn btn-info-custom btn-xs" id="guide-btn" onclick="openGuideModal()">
+                        איך למצוא את נתוני המונה שלך
+                        <i class="fas fa-question-circle ms-2"></i>
+                    </button>
+                </div>
+                
+                <!-- Demo Button -->
+                <div class="text-center mt-2">
+                    <p class="text-muted mb-1">או</p>
+                    <a href="{{ url_for('demo') }}" class="btn btn-primary-custom">
+                        נסה קובץ לדוגמא
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Preview Section -->
+<div class="preview-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="preview-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="preview-title">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                מה תקבל?
+                            </h3>
+                            <ul class="preview-features">
+                                <li><i class="fas fa-trophy text-warning ms-3"></i>התוכנית הטובה ביותר עבורך</li>
+                                <li><i class="fas fa-shekel-sign text-success ms-3"></i>חיסכון חודשי מדויק בשקלים</li>
+                                <li><i class="fas fa-chart-line text-info ms-3"></i>ניתוח דפוס הצריכה שלך</li>
+                                <li><i class="fas fa-link text-primary ms-3"></i>קישורים ישירים לספקי החשמל</li>
+                                <li><i class="fas fa-mobile-alt text-secondary ms-3"></i>תוצאות מותאמות לנייד</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="preview-image-container">
+                                <img src="{{ url_for('static', filename='images/logos/new_results_example.png') }}" 
+                                     alt="דוגמה לתוצאות הניתוח" 
+                                     class="preview-image">
+                                <div class="preview-overlay">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guide Modal -->
+<div class="modal fade" id="guideModal" tabindex="-1" aria-labelledby="guideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content modal-custom">
+            <div class="modal-header">
+                <h5 class="modal-title" id="guideModalLabel">
+                    <i class="fas fa-question-circle me-2"></i>
+                    איך למצוא את נתוני המונה שלך
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-center text-muted">המדריך יתווסף בקרוב...</p>
+                <!-- Steps will be added here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

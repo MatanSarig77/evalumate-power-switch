@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}המלצות תוכניות - Evalumate{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-background-image"></div>
+    <div class="side-lightning-far-left">⚡</div>
+    <div class="side-lightning-far-right">⚡</div>
+    <div class="side-lightning-mid-left">⚡</div>
+    <div class="side-lightning-mid-right">⚡</div>
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                המלצות התוכניות שלך
+                <span class="lightning-character"></span>
+            </h1>
+            <p class="hero-subtitle">
+                מבוסס על ניתוח של {{ active_months }} חודשים פעילים מתוך {{ filename }}
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <div class="container">
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="feature-card text-center">
+                    <i class="fas fa-trophy feature-icon"></i>
+                    <h5>התוכנית הטובה ביותר</h5>
+                    {% if recommendations[0].logo_filename %}
+                    <div class="best-plan-logo mb-2">
+                        {% if recommendations[0].provider_url %}
+                        <a href="{{ recommendations[0].provider_url }}" target="_blank" rel="noopener noreferrer" class="best-plan-logo-link">
+                            <img src="{{ url_for('static_files', filename='images/logos/' + recommendations[0].logo_filename) }}" 
+                                 alt="{{ recommendations[0].provider }} logo" 
+                                 class="best-plan-logo-img">
+                        </a>
+                        {% else %}
+                        <img src="{{ url_for('static_files', filename='images/logos/' + recommendations[0].logo_filename) }}" 
+                             alt="{{ recommendations[0].provider }} logo" 
+                             class="best-plan-logo-img">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <p class="text-muted mb-1">{{ recommendations[0].plan_name }}</p>
+                    <p class="large-metric">{{ recommendations[0].bill_savings_percentage }}% חיסכון</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="feature-card text-center">
+                    <i class="fas fa-shekel-sign feature-icon"></i>
+                    <h5>חיסכון חודשי</h5>
+                    <p class="text-muted mb-1">{{ recommendations[0].monthly_savings_kwh }} kWh</p>
+                    <p class="large-metric">₪{{ recommendations[0].monthly_savings_nis }}</p>
+                    <p class="small text-muted">מבוסס על {{ active_months }} חודשים פעילים</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations Table -->
+        <div class="results-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>דירוג</th>
+                        <th>ספק</th>
+                        <th>שם התוכנית</th>
+                        <th>לוח זמנים</th>
+                        <th>הנחה</th>
+                        <th>חיסכון חודשי</th>
+                        <th>חיסכון בחשבון</th>
+                        <th>חיסכון חודשי (₪)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in recommendations %}
+                    <tr>
+                        <td>
+                            <span class="rank-badge rank-{{ loop.index if loop.index <= 3 else 'other' }}">
+                                {{ loop.index }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="provider-cell">
+                                {% if plan.logo_filename %}
+                                    {% if plan.provider_url %}
+                                    <a href="{{ plan.provider_url }}" target="_blank" rel="noopener noreferrer" class="provider-logo-link">
+                                        <img src="{{ url_for('static_files', filename='images/logos/' + plan.logo_filename) }}" 
+                                             alt="{{ plan.provider }} logo" 
+                                             class="provider-logo"
+                                             onerror="this.style.display='none'; this.parentElement.nextElementSibling.style.display='inline';">
+                                    </a>
+                                    {% else %}
+                                    <img src="{{ url_for('static_files', filename='images/logos/' + plan.logo_filename) }}" 
+                                         alt="{{ plan.provider }} logo" 
+                                         class="provider-logo"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                                    {% endif %}
+                                {% endif %}
+                                <strong class="provider-name">{{ plan.provider }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>{{ plan.plan_name }}</strong>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <i class="fas fa-calendar me-1"></i>{{ plan.applicable_days }}<br>
+                                <i class="fas fa-clock me-1"></i>{{ plan.applicable_hours }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-success">{{ plan.discount_percentage }}%</span>
+                        </td>
+                        <td>
+                            <strong class="savings-highlight">{{ plan.monthly_savings_kwh }} kWh</strong>
+                        </td>
+                        <td>
+                            <strong class="savings-highlight">{{ plan.bill_savings_percentage }}%</strong>
+                        </td>
+                        <td>
+                            <strong class="nis-savings">₪{{ plan.monthly_savings_nis }}</strong>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Hourly Consumption Chart -->
+        {% if hourly_data %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="feature-card">
+                    <h4 class="mb-3">דפוס צריכה שעתי <i class="fas fa-chart-line ms-2"></i></h4>
+                    <div style="height: 400px;">
+                        <canvas id="consumptionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Action Buttons -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('index') }}" class="btn btn-primary-custom btn-lg">
+                    <i class="fas fa-file-csv me-2"></i>
+                    נתח קובץ נוסף
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .footer, .hero-section {
+        display: none !important;
+    }
+    .main-container {
+        box-shadow: none !important;
+        margin: 0 !important;
+    }
+    body {
+        background: white !important;
+    }
+}
+</style>
+
+{% if hourly_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('consumptionChart').getContext('2d');
+    
+    // Prepare data from Flask template
+    const hourlyData = {{ hourly_data | tojson }};
+    const hours = Array.from({length: 24}, (_, i) => i + ':00');
+    
+    // Generate colorful lines for each month
+    const colors = [
+        'rgba(239, 68, 68, 0.8)',    // Red
+        'rgba(34, 197, 94, 0.8)',    // Green
+        'rgba(59, 130, 246, 0.8)',   // Blue
+        'rgba(168, 85, 247, 0.8)',   // Purple
+        'rgba(245, 101, 101, 0.8)',  // Pink
+        'rgba(14, 165, 233, 0.8)'    // Sky blue
+    ];
+    
+    const datasets = [];
+    let colorIndex = 0;
+    
+    // Add datasets for each month
+    Object.keys(hourlyData).forEach(month => {
+        if (month !== 'average') {
+            datasets.push({
+                label: month,
+                data: hourlyData[month],
+                borderColor: colors[colorIndex % colors.length],
+                backgroundColor: colors[colorIndex % colors.length].replace('0.8', '0.1'),
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            });
+            colorIndex++;
+        }
+    });
+    
+    // Add average line (thicker, different style)
+    if (hourlyData.average) {
+        datasets.push({
+            label: 'ממוצע',
+            data: hourlyData.average,
+            borderColor: 'rgba(31, 41, 55, 1)',
+            backgroundColor: 'rgba(31, 41, 55, 0.2)',
+            borderWidth: 4,
+            fill: false,
+            tension: 0.4,
+            borderDash: [5, 5]
+        });
+    }
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hours,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'צריכה ממוצעת לפי שעה',
+                    color: '#1f2937',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: '#1f2937'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'שעה ביום',
+                        color: '#1f2937'
+                    },
+                    ticks: {
+                        color: 'rgba(31, 41, 55, 0.8)'
+                    },
+                    grid: {
+                        color: 'rgba(31, 41, 55, 0.2)'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'צריכה ממוצעת (kWh)',
+                        color: '#1f2937'
+                    },
+                    ticks: {
+                        color: 'rgba(31, 41, 55, 0.8)'
+                    },
+                    grid: {
+                        color: 'rgba(31, 41, 55, 0.2)'
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+{% endblock %}
+

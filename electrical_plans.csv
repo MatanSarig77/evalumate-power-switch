@@ -1,0 +1,14 @@
+provider,plan_name,week_days_applicable,hours_applicable,price_percentage_off,logo_filename,provider_url
+סלקום אנרג׳י,חוסכים ביום,Sunday-Thursday,07:00-17:00,15,cellcom_energy_logo.png,https://cellcom.co.il/production/Private/1/energy3/
+סלקום אנרג׳י,חוסכים למשפחה,Sunday-Thursday,14:00-20:00,18,cellcom_energy_logo.png,https://cellcom.co.il/production/Private/1/energy3/
+סלקום אנרג׳י,חוסכים בלילה,Sunday-Thursday,23:00-07:00,20,cellcom_energy_logo.png,https://cellcom.co.il/production/Private/1/energy3/
+אלקטרה פאוור,לילה,Sunday-Saturday,23:00-07:00,20,electra_power_logo.png,https://sale.electra-power.co.il/
+אלקטרה פאוור,POWER,Sunday-Saturday,00:00-23:59,6.5,electra_power_logo.png,https://sale.electra-power.co.il/
+אלקטרה פאוור,הייטק,Sunday-Saturday,23:00-17:00,10,electra_power_logo.png,https://sale.electra-power.co.il/
+בזק אנרג׳י,חוסכים חכם ביום,Sunday-Thursday,07:00-17:00,15,bezek_logo.png,https://www.bezeq.co.il/benergy/
+בזק אנרג׳י,חוסכים חכם 24/7,Sunday-Saturday,00:00-23:59,6,bezek_logo.png,https://www.bezeq.co.il/benergy/
+בזק אנרג׳י,חוסכים חכם בלילה,Sunday-Thursday,23:00-07:00,20,bezek_logo.png,https://www.bezeq.co.il/benergy/
+אמישראגז אנרג׳י,הנחה קבועה,Sunday-Saturday,00:00-23:59,7,amisragaz_logo.png,https://www.amisragas.co.il/electricity/
+פרטנר אנרג׳י,הנחה קבועה,Sunday-Saturday,00:00-23:59,5,partner_logo.png,https://www.partner.co.il/n/partnerpower/lobby
+פרטנר אנרג׳י,חיות לילה,Sunday-Thursday,23:00-07:00,20,partner_logo.png,https://www.partner.co.il/n/partnerpower/lobby
+פרטנר אנרג׳י,עובדים מהבית,Sunday-Thursday,07:00-17:00,15,partner_logo.png,https://www.partner.co.il/n/partnerpower/lobby

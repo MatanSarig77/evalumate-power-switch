@@ -1,0 +1,13 @@
+<svg width="120" height="40" viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="electraGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3B82F6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="120" height="40" rx="8" fill="url(#electraGradient)"/>
+  <text x="60" y="15" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">ELECTRA</text>
+  <text x="60" y="28" font-family="Arial, sans-serif" font-size="8" text-anchor="middle" fill="white">POWER</text>
+  <polygon points="15,25 20,15 25,25 20,20" fill="#FCD34D"/>
+  <polygon points="95,25 100,15 105,25 100,20" fill="#FCD34D"/>
+</svg>
