@@ -830,21 +830,23 @@
                 }
                 
                 .table {
-                    min-width: 500px;
+                    min-width: 450px;
                 }
                 
-                /* Make text columns narrower on mobile */
+                /* Make text columns much narrower on mobile - single word width */
                 .table th:nth-child(2),
                 .table td:nth-child(2) {
-                    width: 80px;
-                    min-width: 80px;
+                    width: 60px;
+                    min-width: 60px;
                 }
                 
                 .table th:nth-child(3),
                 .table td:nth-child(3) {
-                    width: 120px;
-                    min-width: 120px;
-                    font-size: 0.8rem;
+                    width: 80px;
+                    min-width: 80px;
+                    font-size: 0.75rem;
+                    word-break: break-word;
+                    line-height: 1.1;
                 }
                 
                 /* Style mobile percentage display */
