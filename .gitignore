@@ -40,6 +40,7 @@ uploads/*
 !uploads/.gitkeep
 plan_recommendations.csv
 *_cleaned.csv
+!meter_23278570_LP_18-9-2025_cleaned.csv
 
 # Logs
 *.log
