@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /demo
+
+# Sitemap
+Sitemap: https://your-app-name.railway.app/static/sitemap.xml
+
+# Disallow upload directory for privacy
+Disallow: /uploads/

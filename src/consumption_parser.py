@@ -14,6 +14,7 @@ import pandas as pd
 from datetime import datetime
 import os
 import sys
+import re
 
 def parse_consumption_file(input_file_path, output_file_path=None):
     """
@@ -150,6 +151,130 @@ def parse_consumption_file(input_file_path, output_file_path=None):
     print(f"Average consumption per reading: {df['kwh_consumption'].mean():.4f} kWh")
     
     return output_file_path
+
+def extract_customer_info(input_file_path):
+    """
+    Extract customer information from the meter CSV file header.
+    
+    Args:
+        input_file_path (str): Path to the input CSV file
+    
+    Returns:
+        dict: Dictionary containing customer_name, meter_number, and other metadata
+    """
+    customer_info = {
+        'customer_name': None,
+        'meter_number': None,
+        'address': None,
+        'account_number': None
+    }
+    
+    try:
+        with open(input_file_path, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
+        
+        # Look through the first 20 lines for customer information
+        for i, line in enumerate(lines[:20]):
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Look for customer name patterns
+            # Common patterns: "שם לקוח:", "שם:", "Customer Name:", etc.
+            name_patterns = [
+                r'שם\s*לקוח[:\s]*([^,\n]+)',
+                r'שם[:\s]*([^,\n]+)',
+                r'Customer\s*Name[:\s]*([^,\n]+)',
+                r'Name[:\s]*([^,\n]+)'
+            ]
+            
+            for pattern in name_patterns:
+                match = re.search(pattern, line, re.IGNORECASE)
+                if match:
+                    name = match.group(1).strip().strip('"').strip("'")
+                    if name and len(name) > 2 and not name.isdigit():
+                        customer_info['customer_name'] = name
+                        break
+            
+            # Look for meter number patterns
+            meter_patterns = [
+                r'מונה[:\s]*(\d+)',
+                r'Meter[:\s]*(\d+)',
+                r'מספר\s*מונה[:\s]*(\d+)',
+                r'Meter\s*Number[:\s]*(\d+)',
+                r'(\d{8,12})'  # 8-12 digit numbers (common meter number format)
+            ]
+            
+            for pattern in meter_patterns:
+                match = re.search(pattern, line, re.IGNORECASE)
+                if match:
+                    meter_num = match.group(1).strip()
+                    if meter_num and len(meter_num) >= 6:
+                        customer_info['meter_number'] = meter_num
+                        break
+            
+            # Look for address patterns
+            address_patterns = [
+                r'כתובת[:\s]*([^,\n]+)',
+                r'Address[:\s]*([^,\n]+)',
+                r'רחוב[:\s]*([^,\n]+)'
+            ]
+            
+            for pattern in address_patterns:
+                match = re.search(pattern, line, re.IGNORECASE)
+                if match:
+                    address = match.group(1).strip().strip('"').strip("'")
+                    if address and len(address) > 3:
+                        customer_info['address'] = address
+                        break
+            
+            # Look for account number patterns
+            account_patterns = [
+                r'חשבון[:\s]*(\d+)',
+                r'Account[:\s]*(\d+)',
+                r'מספר\s*חשבון[:\s]*(\d+)',
+                r'Account\s*Number[:\s]*(\d+)'
+            ]
+            
+            for pattern in account_patterns:
+                match = re.search(pattern, line, re.IGNORECASE)
+                if match:
+                    account = match.group(1).strip()
+                    if account and len(account) >= 4:
+                        customer_info['account_number'] = account
+                        break
+        
+        # If no customer name found, try to extract from filename
+        if not customer_info['customer_name']:
+            filename = os.path.basename(input_file_path)
+            # Look for patterns like "meter_12345_customer_name.csv"
+            filename_patterns = [
+                r'meter_\d+_([^_]+)',
+                r'([^_\d]+)_\d+',
+                r'([a-zA-Zא-ת]+)'
+            ]
+            
+            for pattern in filename_patterns:
+                match = re.search(pattern, filename, re.IGNORECASE)
+                if match:
+                    name = match.group(1).strip().replace('_', ' ')
+                    if name and len(name) > 2 and not name.lower() in ['meter', 'data', 'consumption', 'csv']:
+                        customer_info['customer_name'] = name
+                        break
+        
+        # Clean up extracted data
+        for key, value in customer_info.items():
+            if value:
+                # Remove extra whitespace and quotes
+                cleaned = str(value).strip().strip('"').strip("'").strip()
+                customer_info[key] = cleaned if cleaned else None
+        
+        print(f"Extracted customer info: {customer_info}")
+        return customer_info
+        
+    except Exception as e:
+        print(f"Error extracting customer info: {e}")
+        return customer_info
 
 def main():
     """Main function to run the parser from command line"""

@@ -9,8 +9,9 @@ import os
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
-from src.consumption_parser import parse_consumption_file
+from src.consumption_parser import parse_consumption_file, extract_customer_info
 from src.plan_recommender import PlanRecommender
+from src.database import init_db, log_customer_analysis, get_analysis_stats
 import tempfile
 import shutil
 
@@ -27,6 +28,9 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialize database
+init_db(app)
 
 def allowed_file(filename):
     """Check if file extension is allowed."""
@@ -68,6 +72,9 @@ def upload_file():
             cleaned_file_path = temp_file.name
         
         try:
+            # Extract customer information before parsing
+            customer_info = extract_customer_info(filepath)
+            
             parse_consumption_file(filepath, cleaned_file_path)
             
             # Generate recommendations
@@ -87,6 +94,26 @@ def upload_file():
             
             # Convert to dict for template
             recommendations_data = recommendations.to_dict('records')
+            
+            # Log the analysis (best recommendation)
+            if recommendations_data:
+                best_plan = recommendations_data[0]  # First recommendation is the best
+                try:
+                    log_customer_analysis(
+                        customer_name=customer_info.get('customer_name', 'Unknown'),
+                        meter_number=customer_info.get('meter_number'),
+                        selected_provider=best_plan.get('provider', 'Unknown'),
+                        selected_plan=best_plan.get('plan_name', 'Unknown'),
+                        monthly_savings_nis=float(best_plan.get('monthly_savings_nis', 0)),
+                        monthly_savings_kwh=float(best_plan.get('monthly_savings_kwh', 0)) if best_plan.get('monthly_savings_kwh') else None,
+                        bill_savings_percentage=float(best_plan.get('bill_savings_percentage', 0)) if best_plan.get('bill_savings_percentage') else None,
+                        active_months_analyzed=len(recommender.active_months),
+                        filename=filename,
+                        ip_address=request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR')),
+                        user_agent=request.headers.get('User-Agent')
+                    )
+                except Exception as log_error:
+                    print(f"Failed to log analysis: {log_error}")
             
             # Clean up temporary files
             os.unlink(filepath)
@@ -123,6 +150,9 @@ def demo():
         
         flash('משתמש בקובץ דוגמא! מעבד את הנתונים...', 'info')
         
+        # Extract customer information from demo file
+        customer_info = extract_customer_info(sample_file)
+        
         # Generate recommendations using the sample file
         plans_file = 'electrical_plans.csv'
         recommender = PlanRecommender(sample_file, plans_file)
@@ -140,6 +170,26 @@ def demo():
         
         # Convert to dict for template
         recommendations_data = recommendations.to_dict('records')
+        
+        # Log the demo analysis (best recommendation)
+        if recommendations_data:
+            best_plan = recommendations_data[0]  # First recommendation is the best
+            try:
+                log_customer_analysis(
+                    customer_name=customer_info.get('customer_name', 'Demo User'),
+                    meter_number=customer_info.get('meter_number'),
+                    selected_provider=best_plan.get('provider', 'Unknown'),
+                    selected_plan=best_plan.get('plan_name', 'Unknown'),
+                    monthly_savings_nis=float(best_plan.get('monthly_savings_nis', 0)),
+                    monthly_savings_kwh=float(best_plan.get('monthly_savings_kwh', 0)) if best_plan.get('monthly_savings_kwh') else None,
+                    bill_savings_percentage=float(best_plan.get('bill_savings_percentage', 0)) if best_plan.get('bill_savings_percentage') else None,
+                    active_months_analyzed=len(recommender.active_months),
+                    filename='קובץ דוגמא',
+                    ip_address=request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR')),
+                    user_agent=request.headers.get('User-Agent')
+                )
+            except Exception as log_error:
+                print(f"Failed to log demo analysis: {log_error}")
         
         return render_template('results.html', 
                              recommendations=recommendations_data,
@@ -160,6 +210,28 @@ def about():
 def static_files(filename):
     """Serve static files."""
     return send_from_directory('static', filename)
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Serve sitemap for search engines."""
+    return send_from_directory('static', 'sitemap.xml', mimetype='application/xml')
+
+@app.route('/robots.txt')
+def robots():
+    """Serve robots.txt for search engines."""
+    return send_from_directory('static', 'robots.txt', mimetype='text/plain')
+
+@app.route('/admin/stats')
+def admin_stats():
+    """Admin route to view analysis statistics (basic auth recommended in production)."""
+    try:
+        stats = get_analysis_stats()
+        if stats:
+            return jsonify(stats)
+        else:
+            return jsonify({'error': 'Unable to retrieve stats'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
