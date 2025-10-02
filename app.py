@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from werkzeug.utils import secure_filename
 from src.consumption_parser import parse_consumption_file, extract_customer_info
 from src.plan_recommender import PlanRecommender
-from src.database import init_db, log_customer_analysis, get_analysis_stats
+from src.database import init_db, log_customer_analysis, get_analysis_stats, get_recent_analyses
 import tempfile
 import shutil
 
@@ -241,6 +241,25 @@ def admin_dashboard():
         return render_template('admin_dashboard.html', stats=stats)
     except Exception as e:
         return render_template('admin_dashboard.html', stats=None, error=str(e))
+
+@app.route('/admin/customers')
+def admin_customers():
+    """Admin route to view customer list with names and details."""
+    try:
+        customers = get_recent_analyses(limit=100)  # Get last 100 customers
+        return render_template('admin_customers.html', customers=customers)
+    except Exception as e:
+        return render_template('admin_customers.html', customers=[], error=str(e))
+
+@app.route('/admin/customers/json')
+def admin_customers_json():
+    """JSON API for customer data."""
+    try:
+        limit = request.args.get('limit', 50, type=int)
+        customers = get_recent_analyses(limit=limit)
+        return jsonify(customers)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

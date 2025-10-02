@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Customer List - Admin - Evalumate{% endblock %}
+
+{% block description %}Admin customer list showing all users who have used the Evalumate electricity plan recommendation service.{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <i class="fas fa-users" style="font-size: 0.8em; margin-left: 0.5rem;"></i>
+                רשימת לקוחות
+            </h1>
+            <p class="hero-subtitle">
+                כל הלקוחות שהשתמשו במערכת עד כה
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <div class="container">
+        {% if error %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    שגיאה בטעינת הנתונים: {{ error }}
+                </div>
+            </div>
+        </div>
+        {% elif not customers %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    אין לקוחות רשומים עדיין. הנתונים יופיעו לאחר השימוש הראשון במערכת.
+                </div>
+            </div>
+        </div>
+        {% else %}
+        
+        <!-- Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="feature-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            סה"כ {{ customers|length }} לקוחות
+                        </h4>
+                        <div>
+                            <a href="/admin/dashboard" class="btn btn-info-custom me-2">
+                                <i class="fas fa-chart-bar me-1"></i>
+                                סטטיסטיקות
+                            </a>
+                            <a href="/admin/customers/json" class="btn btn-secondary" target="_blank">
+                                <i class="fas fa-download me-1"></i>
+                                JSON
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="results-table">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>תאריך</th>
+                                <th>שם לקוח</th>
+                                <th>מספר מונה</th>
+                                <th>ספק נבחר</th>
+                                <th>תוכנית</th>
+                                <th>חיסכון חודשי</th>
+                                <th>אחוז חיסכון</th>
+                                <th>קובץ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in customers %}
+                            <tr>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ customer.analysis_timestamp[:10] if customer.analysis_timestamp else 'N/A' }}<br>
+                                        {{ customer.analysis_timestamp[11:16] if customer.analysis_timestamp else '' }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <strong>{{ customer.customer_name or 'לא זוהה' }}</strong>
+                                    {% if customer.ip_address %}
+                                    <br><small class="text-muted">{{ customer.ip_address[:10] }}...</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code class="small">{{ customer.meter_number or 'N/A' }}</code>
+                                </td>
+                                <td>
+                                    <strong>{{ customer.selected_provider }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ customer.selected_plan }}</span>
+                                </td>
+                                <td>
+                                    <strong class="nis-savings">₪{{ "%.2f"|format(customer.monthly_savings_nis) }}</strong>
+                                    {% if customer.monthly_savings_kwh %}
+                                    <br><small class="text-muted">{{ "%.1f"|format(customer.monthly_savings_kwh) }} kWh</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if customer.bill_savings_percentage %}
+                                    <span class="badge bg-success">{{ "%.1f"|format(customer.bill_savings_percentage) }}%</span>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small class="text-muted">
+                                        {{ customer.filename[:20] + '...' if customer.filename and customer.filename|length > 20 else customer.filename or 'N/A' }}
+                                    </small>
+                                    {% if customer.active_months_analyzed %}
+                                    <br><small class="text-info">{{ customer.active_months_analyzed }} חודשים</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Options -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="feature-card text-center">
+                    <h5 class="mb-3">אפשרויות ייצוא</h5>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <a href="/admin/customers/json" class="btn btn-primary-custom" target="_blank">
+                            <i class="fas fa-file-code me-2"></i>
+                            ייצוא JSON
+                        </a>
+                        <button onclick="exportToCSV()" class="btn btn-success">
+                            <i class="fas fa-file-csv me-2"></i>
+                            ייצוא CSV
+                        </button>
+                        <button onclick="printTable()" class="btn btn-info-custom">
+                            <i class="fas fa-print me-2"></i>
+                            הדפסה
+                        </button>
+                        <a href="/admin/dashboard" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            חזור לדשבורד
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function exportToCSV() {
+    const table = document.querySelector('.table');
+    let csv = [];
+    
+    // Headers
+    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+    csv.push(headers.join(','));
+    
+    // Data rows
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td')).map(td => {
+            // Clean up cell content
+            let text = td.textContent.trim().replace(/\n/g, ' ').replace(/,/g, ';');
+            return `"${text}"`;
+        });
+        csv.push(cells.join(','));
+    });
+    
+    // Download
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'evalumate_customers.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function printTable() {
+    const printContent = document.querySelector('.results-table').outerHTML;
+    const originalContent = document.body.innerHTML;
+    
+    document.body.innerHTML = `
+        <html>
+        <head>
+            <title>רשימת לקוחות - Evalumate</title>
+            <style>
+                body { font-family: Arial, sans-serif; direction: rtl; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+                th { background-color: #f2f2f2; }
+                .badge { background: #007bff; color: white; padding: 2px 6px; border-radius: 3px; }
+                .nis-savings { color: #28a745; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <h1>רשימת לקוחות - Evalumate</h1>
+            ${printContent}
+        </body>
+        </html>
+    `;
+    
+    window.print();
+    document.body.innerHTML = originalContent;
+    location.reload(); // Restore page functionality
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+    const refreshBtn = document.createElement('div');
+    refreshBtn.innerHTML = '<small class="text-muted">מתעדכן...</small>';
+    refreshBtn.style.position = 'fixed';
+    refreshBtn.style.top = '10px';
+    refreshBtn.style.right = '10px';
+    refreshBtn.style.zIndex = '9999';
+    document.body.appendChild(refreshBtn);
+    
+    setTimeout(() => {
+        location.reload();
+    }, 1000);
+}, 30000);
+</script>
+
+<style>
+.table {
+    font-size: 0.9rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+code {
+    background: rgba(0,0,0,0.1);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .table {
+        font-size: 0.8rem;
+    }
+    
+    .table th:nth-child(n+6),
+    .table td:nth-child(n+6) {
+        display: none;
+    }
+}
+</style>
+
+{% endblock %}
