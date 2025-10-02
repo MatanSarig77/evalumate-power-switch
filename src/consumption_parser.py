@@ -179,22 +179,58 @@ def extract_customer_info(input_file_path):
             if not line:
                 continue
             
+            # Debug: print lines being analyzed
+            print(f"Analyzing line {i+1}: {line[:100]}...")
+            
             # Look for customer name patterns
-            # Common patterns: "שם לקוח:", "שם:", "Customer Name:", etc.
+            # Try different patterns, more specific first
             name_patterns = [
-                r'שם\s*לקוח[:\s]*([^,\n]+)',
-                r'שם[:\s]*([^,\n]+)',
-                r'Customer\s*Name[:\s]*([^,\n]+)',
-                r'Name[:\s]*([^,\n]+)'
+                # Specific Hebrew patterns with colons
+                r'שם\s*לקוח\s*[:\-]\s*([א-ת\s]+[א-ת])',  # Hebrew name after "שם לקוח:"
+                r'שם\s*המנוי\s*[:\-]\s*([א-ת\s]+[א-ת])',  # Hebrew name after "שם המנוי:"
+                r'לקוח\s*[:\-]\s*([א-ת\s]+[א-ת])',        # Hebrew name after "לקוח:"
+                
+                # English patterns
+                r'Customer\s*Name\s*[:\-]\s*([a-zA-Z\s]+)',
+                r'Name\s*[:\-]\s*([a-zA-Z\s]+)',
+                
+                # CSV field patterns (look for names in quotes)
+                r'"([א-ת]+\s+[א-ת]+)"',  # Hebrew first+last name in quotes
+                r'"([a-zA-Z]+\s+[a-zA-Z]+)"',  # English first+last name in quotes
+                
+                # General patterns (fallback)
+                r'שם\s*[:\-]\s*([^,\n\r]+)',
+                r'שם\s*לקוח\s*[:\-]\s*([^,\n\r]+)'
             ]
             
             for pattern in name_patterns:
                 match = re.search(pattern, line, re.IGNORECASE)
                 if match:
-                    name = match.group(1).strip().strip('"').strip("'")
-                    if name and len(name) > 2 and not name.isdigit():
+                    name = match.group(1).strip().strip('"').strip("'").strip()
+                    print(f"Found potential name: '{name}' using pattern: {pattern}")
+                    
+                    # Filter out common Hebrew labels and invalid names
+                    invalid_names = [
+                        'לקוח', 'customer', 'name', 'שם', 'מנוי', 'בעל', 'חשבון',
+                        'account', 'holder', 'user', 'משתמש', 'בעלים', 'owner',
+                        'נ/א', 'n/a', 'null', 'none', 'empty', 'ריק'
+                    ]
+                    
+                    # Check if name is valid
+                    if (name and 
+                        len(name) > 2 and 
+                        len(name) < 50 and  # Reasonable name length
+                        not name.isdigit() and 
+                        name.lower() not in invalid_names and
+                        not any(invalid in name.lower() for invalid in invalid_names) and
+                        # Must contain at least one letter (Hebrew or English)
+                        re.search(r'[א-תa-zA-Z]', name)):
+                        
+                        print(f"Valid name found: '{name}'")
                         customer_info['customer_name'] = name
                         break
+                    else:
+                        print(f"Invalid name rejected: '{name}'")
             
             # Look for meter number patterns
             meter_patterns = [
