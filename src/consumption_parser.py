@@ -182,55 +182,108 @@ def extract_customer_info(input_file_path):
             # Debug: print lines being analyzed
             print(f"Analyzing line {i+1}: {line[:100]}...")
             
-            # Look for customer name patterns
-            # Try different patterns, more specific first
-            name_patterns = [
-                # Specific Hebrew patterns with colons
-                r'שם\s*לקוח\s*[:\-]\s*([א-ת\s]+[א-ת])',  # Hebrew name after "שם לקוח:"
-                r'שם\s*המנוי\s*[:\-]\s*([א-ת\s]+[א-ת])',  # Hebrew name after "שם המנוי:"
-                r'לקוח\s*[:\-]\s*([א-ת\s]+[א-ת])',        # Hebrew name after "לקוח:"
+            # Look for "שם לקוח" label first, then get name from 2 cells below
+            if 'שם לקוח' in line or 'שם המנוי' in line:
+                print(f"Found customer name label at line {i+1}")
                 
-                # English patterns
-                r'Customer\s*Name\s*[:\-]\s*([a-zA-Z\s]+)',
-                r'Name\s*[:\-]\s*([a-zA-Z\s]+)',
-                
-                # CSV field patterns (look for names in quotes)
-                r'"([א-ת]+\s+[א-ת]+)"',  # Hebrew first+last name in quotes
-                r'"([a-zA-Z]+\s+[a-zA-Z]+)"',  # English first+last name in quotes
-                
-                # General patterns (fallback)
-                r'שם\s*[:\-]\s*([^,\n\r]+)',
-                r'שם\s*לקוח\s*[:\-]\s*([^,\n\r]+)'
-            ]
-            
-            for pattern in name_patterns:
-                match = re.search(pattern, line, re.IGNORECASE)
-                if match:
-                    name = match.group(1).strip().strip('"').strip("'").strip()
-                    print(f"Found potential name: '{name}' using pattern: {pattern}")
+                # Parse the current line as CSV to find which cell contains the label
+                try:
+                    # Split line by comma, handling quotes
+                    cells = []
+                    current_cell = ""
+                    in_quotes = False
                     
-                    # Filter out common Hebrew labels and invalid names
-                    invalid_names = [
-                        'לקוח', 'customer', 'name', 'שם', 'מנוי', 'בעל', 'חשבון',
-                        'account', 'holder', 'user', 'משתמש', 'בעלים', 'owner',
-                        'נ/א', 'n/a', 'null', 'none', 'empty', 'ריק'
-                    ]
+                    for char in line:
+                        if char == '"':
+                            in_quotes = not in_quotes
+                        elif char == ',' and not in_quotes:
+                            cells.append(current_cell.strip().strip('"'))
+                            current_cell = ""
+                        else:
+                            current_cell += char
+                    cells.append(current_cell.strip().strip('"'))
                     
-                    # Check if name is valid
-                    if (name and 
-                        len(name) > 2 and 
-                        len(name) < 50 and  # Reasonable name length
-                        not name.isdigit() and 
-                        name.lower() not in invalid_names and
-                        not any(invalid in name.lower() for invalid in invalid_names) and
-                        # Must contain at least one letter (Hebrew or English)
-                        re.search(r'[א-תa-zA-Z]', name)):
+                    print(f"Parsed cells: {cells}")
+                    
+                    # Find which cell contains the label
+                    label_cell_index = -1
+                    for cell_idx, cell in enumerate(cells):
+                        if 'שם לקוח' in cell or 'שם המנוי' in cell:
+                            label_cell_index = cell_idx
+                            break
+                    
+                    if label_cell_index >= 0:
+                        # Look for name 2 cells to the right
+                        if label_cell_index + 2 < len(cells):
+                            potential_name = cells[label_cell_index + 2].strip()
+                            print(f"Found name 2 cells right: '{potential_name}'")
+                        else:
+                            # If not enough cells in same line, look in next lines
+                            potential_name = None
+                            for next_line_idx in range(i + 1, min(i + 3, len(lines))):
+                                if next_line_idx < len(lines):
+                                    next_line = lines[next_line_idx].strip()
+                                    if next_line:
+                                        # Parse next line cells
+                                        next_cells = []
+                                        current_cell = ""
+                                        in_quotes = False
+                                        
+                                        for char in next_line:
+                                            if char == '"':
+                                                in_quotes = not in_quotes
+                                            elif char == ',' and not in_quotes:
+                                                next_cells.append(current_cell.strip().strip('"'))
+                                                current_cell = ""
+                                            else:
+                                                current_cell += char
+                                        next_cells.append(current_cell.strip().strip('"'))
+                                        
+                                        # Try to get the name from corresponding position
+                                        if len(next_cells) > label_cell_index + 2:
+                                            potential_name = next_cells[label_cell_index + 2].strip()
+                                            print(f"Found name in next line: '{potential_name}'")
+                                            break
+                                        elif len(next_cells) > 0:
+                                            # Sometimes the name might be in the first cell of next line
+                                            potential_name = next_cells[0].strip()
+                                            print(f"Found name in first cell of next line: '{potential_name}'")
+                                            break
                         
-                        print(f"Valid name found: '{name}'")
-                        customer_info['customer_name'] = name
-                        break
-                    else:
-                        print(f"Invalid name rejected: '{name}'")
+                        # Validate the potential name
+                        if potential_name:
+                            name = potential_name.strip().strip('"').strip("'").strip()
+                            
+                            # Filter out common Hebrew labels and invalid names
+                            invalid_names = [
+                                'לקוח', 'customer', 'name', 'שם', 'מנוי', 'בעל', 'חשבון',
+                                'account', 'holder', 'user', 'משתמש', 'בעלים', 'owner',
+                                'נ/א', 'n/a', 'null', 'none', 'empty', 'ריק', 'תאריך', 'date',
+                                'שעה', 'time', 'צריכה', 'consumption', 'מונה', 'meter'
+                            ]
+                            
+                            # Check if name is valid
+                            if (name and 
+                                len(name) > 2 and 
+                                len(name) < 50 and  # Reasonable name length
+                                not name.isdigit() and 
+                                name.lower() not in invalid_names and
+                                not any(invalid in name.lower() for invalid in invalid_names) and
+                                # Must contain at least one letter (Hebrew or English)
+                                re.search(r'[א-תa-zA-Z]', name) and
+                                # Should not be a date or time pattern
+                                not re.match(r'\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}', name) and
+                                not re.match(r'\d{1,2}:\d{2}', name)):
+                                
+                                print(f"Valid customer name found: '{name}'")
+                                customer_info['customer_name'] = name
+                                break
+                            else:
+                                print(f"Invalid name rejected: '{name}'")
+                
+                except Exception as e:
+                    print(f"Error parsing CSV line: {e}")
+                    continue
             
             # Look for meter number patterns
             meter_patterns = [
