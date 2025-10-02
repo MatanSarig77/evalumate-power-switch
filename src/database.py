@@ -146,3 +146,15 @@ def get_analysis_stats():
     except Exception as e:
         print(f"Error getting analysis stats: {e}")
         return None
+
+def get_recent_analyses(limit=50):
+    """Get recent customer analyses"""
+    try:
+        analyses = CustomerAnalysis.query.order_by(
+            CustomerAnalysis.analysis_timestamp.desc()
+        ).limit(limit).all()
+        
+        return [analysis.to_dict() for analysis in analyses]
+    except Exception as e:
+        print(f"Error getting recent analyses: {e}")
+        return []

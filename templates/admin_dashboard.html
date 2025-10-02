@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Evalumate{% endblock %}
+
+{% block description %}Admin dashboard for monitoring Evalumate usage statistics and customer analysis data.{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <i class="fas fa-chart-bar" style="font-size: 0.8em; margin-left: 0.5rem;"></i>
+                Admin Dashboard
+            </h1>
+            <p class="hero-subtitle">
+                מעקב אחר שימוש במערכת וסטטיסטיקות לקוחות
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="upload-section">
+    <div class="container">
+        {% if error %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    שגיאה בטעינת הנתונים: {{ error }}
+                </div>
+            </div>
+        </div>
+        {% elif not stats %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    אין נתונים זמינים עדיין. הנתונים יופיעו לאחר השימוש הראשון במערכת.
+                </div>
+            </div>
+        </div>
+        {% else %}
+        
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="feature-card text-center">
+                    <i class="fas fa-users feature-icon text-primary"></i>
+                    <h5>סה"כ ניתוחים</h5>
+                    <p class="large-metric text-primary">{{ stats.total_analyses }}</p>
+                    <p class="small text-muted">לקוחות שהשתמשו במערכת</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="feature-card text-center">
+                    <i class="fas fa-shekel-sign feature-icon text-success"></i>
+                    <h5>סה"כ חיסכון חודשי</h5>
+                    <p class="large-metric text-success">₪{{ "%.2f"|format(stats.total_monthly_savings) }}</p>
+                    <p class="small text-muted">חיסכון כולל שנוצר ללקוחות</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="feature-card text-center">
+                    <i class="fas fa-calculator feature-icon text-info"></i>
+                    <h5>ממוצע חיסכון</h5>
+                    <p class="large-metric text-info">₪{{ "%.2f"|format(stats.average_monthly_savings) }}</p>
+                    <p class="small text-muted">חיסכון ממוצע ללקוח</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="feature-card text-center">
+                    <i class="fas fa-chart-line feature-icon text-warning"></i>
+                    <h5>חיסכון שנתי צפוי</h5>
+                    <p class="large-metric text-warning">₪{{ "%.0f"|format(stats.total_monthly_savings * 12) }}</p>
+                    <p class="small text-muted">הקרנה לשנה מלאה</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Providers Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="feature-card">
+                    <h4 class="mb-3">
+                        <i class="fas fa-trophy me-2"></i>
+                        ספקי החשמל הפופולריים ביותר
+                    </h4>
+                    {% if stats.top_providers %}
+                    <div class="row">
+                        {% for provider in stats.top_providers %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">{{ provider.provider }}</h6>
+                                    <small class="text-muted">{{ provider.count }} המלצות</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary fs-6">
+                                        {{ "%.1f"|format((provider.count / stats.total_analyses * 100)) }}%
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">אין נתוני ספקים זמינים</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Chart -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="feature-card">
+                    <h4 class="mb-3">
+                        <i class="fas fa-chart-pie me-2"></i>
+                        התפלגות ספקים
+                    </h4>
+                    <div style="height: 400px;">
+                        <canvas id="providersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="feature-card">
+                    <h5><i class="fas fa-leaf me-2 text-success"></i>השפעה סביבתית</h5>
+                    <p class="mb-2">חיסכון אנרגיה משוער:</p>
+                    <p class="h4 text-success">{{ "%.0f"|format(stats.total_monthly_savings * 2.5) }} kWh/חודש</p>
+                    <small class="text-muted">בהנחה של 2.5 kWh לכל ₪ חיסכון</small>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="feature-card">
+                    <h5><i class="fas fa-home me-2 text-info"></i>השפעה על משקי בית</h5>
+                    <p class="mb-2">חיסכון ממוצע למשק בית:</p>
+                    <p class="h4 text-info">{{ "%.0f"|format(stats.average_monthly_savings * 12) }} ₪/שנה</p>
+                    <small class="text-muted">חיסכון שנתי ממוצע</small>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="row">
+            <div class="col-12">
+                <div class="feature-card text-center">
+                    <h5 class="mb-3">פעולות מהירות</h5>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <a href="/admin/stats" class="btn btn-primary-custom" target="_blank">
+                            <i class="fas fa-download me-2"></i>
+                            הורד נתונים (JSON)
+                        </a>
+                        <a href="/" class="btn btn-info-custom">
+                            <i class="fas fa-home me-2"></i>
+                            חזור לעמוד הראשי
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            רענן נתונים
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if stats and stats.top_providers %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('providersChart').getContext('2d');
+    
+    const providers = {{ stats.top_providers | tojson }};
+    const labels = providers.map(p => p.provider);
+    const data = providers.map(p => p.count);
+    
+    const colors = [
+        'rgba(59, 130, 246, 0.8)',   // Blue
+        'rgba(16, 185, 129, 0.8)',   // Green  
+        'rgba(245, 101, 101, 0.8)',  // Red
+        'rgba(168, 85, 247, 0.8)',   // Purple
+        'rgba(245, 158, 11, 0.8)',   // Yellow
+        'rgba(239, 68, 68, 0.8)'     // Pink
+    ];
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                borderColor: colors.map(color => color.replace('0.8', '1')),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'התפלגות ספקי החשמל המומלצים',
+                    color: '#1f2937',
+                    font: {
+                        size: 16
+                    }
+                },
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#1f2937',
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+
+<style>
+.large-metric {
+    font-size: 2.5rem !important;
+    font-weight: 800;
+    margin: 0.5rem 0;
+}
+
+.feature-card {
+    transition: transform 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .large-metric {
+        font-size: 2rem !important;
+    }
+}
+</style>
+
+{% endblock %}

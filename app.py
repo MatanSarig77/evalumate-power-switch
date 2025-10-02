@@ -233,6 +233,15 @@ def admin_stats():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    """Admin dashboard with nice HTML interface."""
+    try:
+        stats = get_analysis_stats()
+        return render_template('admin_dashboard.html', stats=stats)
+    except Exception as e:
+        return render_template('admin_dashboard.html', stats=None, error=str(e))
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') == 'development'
