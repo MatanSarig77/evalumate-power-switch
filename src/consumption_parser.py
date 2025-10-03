@@ -182,7 +182,7 @@ def extract_customer_info(input_file_path):
             # Debug: print lines being analyzed
             print(f"Analyzing line {i+1}: {line[:100]}...")
             
-            # Look for "שם לקוח" label first, then get name from 2 cells below
+            # Look for "שם לקוח" label first, then get name from 2 cells below (down)
             if 'שם לקוח' in line or 'שם המנוי' in line:
                 print(f"Found customer name label at line {i+1}")
                 
@@ -213,42 +213,64 @@ def extract_customer_info(input_file_path):
                             break
                     
                     if label_cell_index >= 0:
-                        # Look for name 2 cells to the right
-                        if label_cell_index + 2 < len(cells):
-                            potential_name = cells[label_cell_index + 2].strip()
-                            print(f"Found name 2 cells right: '{potential_name}'")
-                        else:
-                            # If not enough cells in same line, look in next lines
-                            potential_name = None
-                            for next_line_idx in range(i + 1, min(i + 3, len(lines))):
-                                if next_line_idx < len(lines):
-                                    next_line = lines[next_line_idx].strip()
-                                    if next_line:
-                                        # Parse next line cells
-                                        next_cells = []
+                        print(f"Label found in cell index: {label_cell_index}")
+                        
+                        # Look for name 2 ROWS below in the same column
+                        potential_name = None
+                        target_line_idx = i + 2  # 2 lines below current line
+                        
+                        if target_line_idx < len(lines):
+                            target_line = lines[target_line_idx].strip()
+                            print(f"Looking for name in line {target_line_idx + 1}: {target_line[:100]}...")
+                            
+                            if target_line:
+                                # Parse target line cells
+                                target_cells = []
+                                current_cell = ""
+                                in_quotes = False
+                                
+                                for char in target_line:
+                                    if char == '"':
+                                        in_quotes = not in_quotes
+                                    elif char == ',' and not in_quotes:
+                                        target_cells.append(current_cell.strip().strip('"'))
                                         current_cell = ""
-                                        in_quotes = False
-                                        
-                                        for char in next_line:
-                                            if char == '"':
-                                                in_quotes = not in_quotes
-                                            elif char == ',' and not in_quotes:
-                                                next_cells.append(current_cell.strip().strip('"'))
-                                                current_cell = ""
-                                            else:
-                                                current_cell += char
-                                        next_cells.append(current_cell.strip().strip('"'))
-                                        
-                                        # Try to get the name from corresponding position
-                                        if len(next_cells) > label_cell_index + 2:
-                                            potential_name = next_cells[label_cell_index + 2].strip()
-                                            print(f"Found name in next line: '{potential_name}'")
-                                            break
-                                        elif len(next_cells) > 0:
-                                            # Sometimes the name might be in the first cell of next line
-                                            potential_name = next_cells[0].strip()
-                                            print(f"Found name in first cell of next line: '{potential_name}'")
-                                            break
+                                    else:
+                                        current_cell += char
+                                target_cells.append(current_cell.strip().strip('"'))
+                                
+                                print(f"Target line cells: {target_cells}")
+                                
+                                # Get name from same column position
+                                if len(target_cells) > label_cell_index:
+                                    potential_name = target_cells[label_cell_index].strip()
+                                    print(f"Found name 2 rows below: '{potential_name}'")
+                                else:
+                                    print(f"Not enough cells in target line (need {label_cell_index + 1}, got {len(target_cells)})")
+                        
+                        # Fallback: try 1 row below if 2 rows below doesn't work
+                        if not potential_name and i + 1 < len(lines):
+                            fallback_line = lines[i + 1].strip()
+                            print(f"Fallback: checking line {i + 2}: {fallback_line[:100]}...")
+                            
+                            if fallback_line:
+                                fallback_cells = []
+                                current_cell = ""
+                                in_quotes = False
+                                
+                                for char in fallback_line:
+                                    if char == '"':
+                                        in_quotes = not in_quotes
+                                    elif char == ',' and not in_quotes:
+                                        fallback_cells.append(current_cell.strip().strip('"'))
+                                        current_cell = ""
+                                    else:
+                                        current_cell += char
+                                fallback_cells.append(current_cell.strip().strip('"'))
+                                
+                                if len(fallback_cells) > label_cell_index:
+                                    potential_name = fallback_cells[label_cell_index].strip()
+                                    print(f"Found name 1 row below: '{potential_name}'")
                         
                         # Validate the potential name
                         if potential_name:

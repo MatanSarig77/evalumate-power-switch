@@ -69,7 +69,12 @@
         <div class="row">
             <div class="col-12">
                 <div class="results-table">
-                    <table class="table table-hover mb-0">
+                    <div class="scroll-indicator">
+                        <i class="fas fa-arrow-left"></i>
+                        גרור לצפייה בעמודות נוספות
+                    </div>
+                    <div class="table-container">
+                        <table class="table table-hover mb-0">
                         <thead>
                             <tr>
                                 <th>תאריך</th>
@@ -130,7 +135,8 @@
                             </tr>
                             {% endfor %}
                         </tbody>
-                    </table>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
