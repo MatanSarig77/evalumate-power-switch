@@ -285,6 +285,16 @@ def admin_restore():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/admin/init-db')
+def admin_init_db():
+    """Initialize database tables (for Railway setup)."""
+    try:
+        with app.app_context():
+            db.create_all()
+            return jsonify({'message': 'Database tables initialized successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') == 'development'
