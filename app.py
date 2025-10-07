@@ -289,6 +289,7 @@ def admin_restore():
 def admin_init_db():
     """Initialize database tables (for Railway setup)."""
     try:
+        from src.database import db
         with app.app_context():
             db.create_all()
             return jsonify({'message': 'Database tables initialized successfully'})

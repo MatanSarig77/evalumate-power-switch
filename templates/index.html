@@ -20,7 +20,7 @@
                 <span class="lightning-character"></span>
             </h1>
             <p class="hero-subtitle">
-                העלה את נתוני המונה שלך, קבל את התוכנית החשמל הטובה ביותר - בחינם!
+                לקוחות חברת חשמל - העלו את נתוני המונה שלכם, וקבלו את תוכנית החשמל הטובה ביותר עבורכם - בחינם!
             </p>
         </div>
     </div>
@@ -33,11 +33,11 @@
                 <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
                     <div class="upload-area" id="upload-area">
                         <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                        <h4>גרור את קובץ ה-CSV שלך לכאן</h4>
+                        <h4>גרור את קובץ נתוני המונה לכאן</h4>
                         <p class="text-muted mb-3">או לחץ לעיון</p>
                         <input type="file" name="consumption_file" id="consumption_file" accept=".csv" style="display: none;" required>
                         <p class="small text-muted mb-3" id="file-name">לא נבחר קובץ</p>
-                        <button type="submit" class="btn btn-info-custom btn-lg" id="upload-btn" disabled>
+                        <button type="submit" class="btn btn-primary-custom btn-lg" id="upload-btn" disabled>
                             <i class="fas fa-upload me-2"></i>
                             נתח וחסוך
                         </button>
@@ -55,7 +55,7 @@
                 <!-- Demo Button -->
                 <div class="text-center mt-2">
                     <p class="text-muted mb-1">או</p>
-                    <a href="{{ url_for('demo') }}" class="btn btn-primary-custom">
+                    <a href="{{ url_for('demo') }}" class="btn btn-info-custom">
                         נסה קובץ לדוגמא
                     </a>
                 </div>

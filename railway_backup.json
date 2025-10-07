@@ -1,0 +1,36 @@
+{
+  "timestamp": "2025-10-07T18:42:41.392261",
+  "total_records": 2,
+  "data": [
+    {
+      "id": 1,
+      "customer_name": null,
+      "meter_number": null,
+      "analysis_timestamp": "2025-10-07T15:25:56.652431",
+      "selected_provider": "\u05d0\u05dc\u05e7\u05d8\u05e8\u05d4 \u05e4\u05d0\u05d5\u05d5\u05e8",
+      "selected_plan": "\u05d4\u05d9\u05d9\u05d8\u05e7",
+      "monthly_savings_nis": 71.5,
+      "monthly_savings_kwh": 111.69,
+      "bill_savings_percentage": 7.2,
+      "active_months_analyzed": 3,
+      "filename": "\u05e7\u05d5\u05d1\u05e5 \u05d3\u05d5\u05d2\u05de\u05d0",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+    },
+    {
+      "id": 2,
+      "customer_name": null,
+      "meter_number": null,
+      "analysis_timestamp": "2025-10-07T15:28:22.693423",
+      "selected_provider": "\u05d0\u05dc\u05e7\u05d8\u05e8\u05d4 \u05e4\u05d0\u05d5\u05d5\u05e8",
+      "selected_plan": "\u05d4\u05d9\u05d9\u05d8\u05e7",
+      "monthly_savings_nis": 71.5,
+      "monthly_savings_kwh": 111.69,
+      "bill_savings_percentage": 7.2,
+      "active_months_analyzed": 3,
+      "filename": "\u05e7\u05d5\u05d1\u05e5 \u05d3\u05d5\u05d2\u05de\u05d0",
+      "ip_address": "127.0.0.1",
+      "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+    }
+  ]
+}
