@@ -6,10 +6,12 @@ This module defines the database models for logging customer analysis data.
 """
 
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from datetime import datetime
 import os
 
 db = SQLAlchemy()
+migrate = Migrate()
 
 class CustomerAnalysis(db.Model):
     """Model for storing customer analysis data"""
@@ -65,13 +67,18 @@ def init_db(app):
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Initialize SQLAlchemy with app
+    # Initialize SQLAlchemy and Migrate with app
     db.init_app(app)
+    migrate.init_app(app, db)
     
-    # Create tables
+    # Create tables (only if they don't exist)
     with app.app_context():
-        db.create_all()
-        print("Database tables created successfully")
+        try:
+            db.create_all()
+            print("Database tables created successfully")
+        except Exception as e:
+            print(f"Database initialization note: {e}")
+            print("This is normal if tables already exist or migrations are being used.")
 
 def log_customer_analysis(customer_name, meter_number, selected_provider, selected_plan, 
                          monthly_savings_nis, monthly_savings_kwh=None, 
@@ -158,3 +165,56 @@ def get_recent_analyses(limit=50):
     except Exception as e:
         print(f"Error getting recent analyses: {e}")
         return []
+
+def backup_database():
+    """Create a backup of all customer analysis data"""
+    try:
+        analyses = CustomerAnalysis.query.all()
+        backup_data = {
+            'timestamp': datetime.utcnow().isoformat(),
+            'total_records': len(analyses),
+            'data': [analysis.to_dict() for analysis in analyses]
+        }
+        return backup_data
+    except Exception as e:
+        print(f"Error creating database backup: {e}")
+        return None
+
+def restore_database(backup_data):
+    """Restore customer analysis data from backup"""
+    try:
+        if not backup_data or 'data' not in backup_data:
+            return False
+        
+        # Clear existing data
+        CustomerAnalysis.query.delete()
+        
+        # Restore data
+        for record in backup_data['data']:
+            analysis = CustomerAnalysis(
+                customer_name=record.get('customer_name'),
+                meter_number=record.get('meter_number'),
+                selected_provider=record.get('selected_provider'),
+                selected_plan=record.get('selected_plan'),
+                monthly_savings_nis=record.get('monthly_savings_nis'),
+                monthly_savings_kwh=record.get('monthly_savings_kwh'),
+                bill_savings_percentage=record.get('bill_savings_percentage'),
+                active_months_analyzed=record.get('active_months_analyzed'),
+                filename=record.get('filename'),
+                ip_address=record.get('ip_address'),
+                user_agent=record.get('user_agent')
+            )
+            # Preserve original timestamp if available
+            if record.get('analysis_timestamp'):
+                analysis.analysis_timestamp = datetime.fromisoformat(record['analysis_timestamp'].replace('Z', '+00:00'))
+            
+            db.session.add(analysis)
+        
+        db.session.commit()
+        print(f"Restored {len(backup_data['data'])} records from backup")
+        return True
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error restoring database: {e}")
+        return False

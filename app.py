@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 from werkzeug.utils import secure_filename
 from src.consumption_parser import parse_consumption_file, extract_customer_info
 from src.plan_recommender import PlanRecommender
-from src.database import init_db, log_customer_analysis, get_analysis_stats, get_recent_analyses
+from src.database import init_db, log_customer_analysis, get_analysis_stats, get_recent_analyses, backup_database, restore_database
 import tempfile
 import shutil
 
@@ -258,6 +258,30 @@ def admin_customers_json():
         limit = request.args.get('limit', 50, type=int)
         customers = get_recent_analyses(limit=limit)
         return jsonify(customers)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/backup')
+def admin_backup():
+    """Create a backup of all customer data."""
+    try:
+        backup_data = backup_database()
+        if backup_data:
+            return jsonify(backup_data)
+        else:
+            return jsonify({'error': 'Failed to create backup'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/restore', methods=['POST'])
+def admin_restore():
+    """Restore customer data from backup."""
+    try:
+        backup_data = request.get_json()
+        if restore_database(backup_data):
+            return jsonify({'message': 'Database restored successfully'})
+        else:
+            return jsonify({'error': 'Failed to restore database'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
